@@ -45,7 +45,7 @@ class BeaconNode {
   public conf: BeaconNodeCtx;
   public db: Service;
   public eth1: Service;
-  public network: Service;
+  // public network: Service;
   public chain: Service;
   public opPool: Service;
   public rpc: Service;
@@ -62,16 +62,16 @@ class BeaconNode {
     );
 
     this.db = new LevelDB(this.conf.db);
-    this.network = new P2PNetwork(this.conf.p2p);
+    // this.network = new P2PNetwork(this.conf.p2p);
     this.eth1 = new EthersEth1Notifier(
       this.conf.eth1,
       {
         db: this.db
       }
     );
-    this.sync = new Sync(this.conf.sync, {
-      network: this.network,
-    });
+    // this.sync = new Sync(this.conf.sync, {
+    //   network: this.network,
+    // });
     this.chain = new BeaconChain(this.conf.chain, {
       db: this.db,
       eth1: this.eth1,
@@ -91,22 +91,22 @@ class BeaconNode {
   public async start(): Promise<void> {
     logger.info('Starting eth2 beacon node - LODESTAR!');
     await this.db.start();
-    await this.network.start();
+    // await this.network.start();
     await this.eth1.start();
     await this.chain.start();
     await this.opPool.start();
-    await this.sync.start();
+    // await this.sync.start();
     await this.rpc.start();
   }
 
   public async stop(): Promise<void> {
     await this.rpc.stop();
-    await this.sync.stop();
+    // await this.sync.stop();
     await this.opPool.stop();
 
     await this.chain.stop();
     await this.eth1.stop();
-    await this.network.stop();
+    // await this.network.stop();
     await this.db.stop();
   }
 }
