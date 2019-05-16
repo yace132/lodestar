@@ -62,14 +62,14 @@ export function processDeposit(state: BeaconState, deposit: Deposit): void {
 
   if (!validatorPubkeys.includes(pubkey)) {
     // Verify the deposit signature (proof of possession)
-    if (!bls.verify(
-      pubkey,
-      signingRoot(deposit.data, DepositData),
-      deposit.data.signature,
-      getDomain(state, Domain.DEPOSIT),
-    )) {
-      return;
-    }
+    // if (!bls.verify(
+    //   pubkey,
+    //   signingRoot(deposit.data, DepositData),
+    //   deposit.data.signature,
+    //   getDomain(state, Domain.DEPOSIT),
+    // )) {
+    //   return;
+    // }
 
     // Add validator and balance entries
     const validator: Validator = {
