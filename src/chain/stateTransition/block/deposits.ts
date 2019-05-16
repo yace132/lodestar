@@ -72,10 +72,6 @@ export function processDeposit(state: BeaconState, deposit: Deposit): void {
     }
 
     // Add validator and balance entries
-    logger.info({amount});
-    logger.info({EFFECTIVE_BALANCE_INCREMENT});
-    logger.info(`${amount.mod(new BN(EFFECTIVE_BALANCE_INCREMENT))}`);
-    logger.info("HERE")
     const validator: Validator = {
       pubkey,
       withdrawalCredentials: deposit.data.withdrawalCredentials,

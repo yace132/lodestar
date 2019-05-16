@@ -52,6 +52,7 @@ class BeaconNode {
   public sync: Service;
 
   public constructor(opts: BeaconNodeCtx) {
+    logger.info("Setting up configurations...")
     this.conf = deepmerge(
       defaultConf,
       opts,
