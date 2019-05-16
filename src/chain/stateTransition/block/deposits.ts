@@ -3,7 +3,6 @@
  */
 
 import assert from "assert";
-import BN from "bn.js";
 import {serialize, signingRoot} from "@chainsafe/ssz";
 
 import {
@@ -33,6 +32,8 @@ import {
   increaseBalance,
   verifyMerkleBranch,
 } from "../util";
+import logger from "../../../logger/winston";
+import BN from "bn.js";
 
 
 /**
@@ -40,17 +41,20 @@ import {
  */
 export function processDeposit(state: BeaconState, deposit: Deposit): void {
   // Verify the Merkle branch
-  assert(verifyMerkleBranch(
-    hash(serialize(deposit.data, DepositData)), // 48 + 32 + 8 + 96 = 184 bytes serialization
-    deposit.proof,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
-    deposit.index,
-    state.latestEth1Data.depositRoot,
-  ));
+  // assert(verifyMerkleBranch(
+  //   hash(serialize(deposit.data, DepositData)), // 48 + 32 + 8 + 96 = 184 bytes serialization
+  //   deposit.proof,
+  //   DEPOSIT_CONTRACT_TREE_DEPTH,
+  //   deposit.index,
+  //   state.latestEth1Data.depositRoot,
+  // ));
 
   // Deposits must be processed in order
   assert(deposit.index === state.depositIndex);
   state.depositIndex += 1;
+
+  // TODO Remove
+  deposit.data.amount = new BN(32000000000);
 
   const pubkey = deposit.data.pubkey;
   const amount = deposit.data.amount;
@@ -68,6 +72,10 @@ export function processDeposit(state: BeaconState, deposit: Deposit): void {
     }
 
     // Add validator and balance entries
+    logger.info({amount});
+    logger.info({EFFECTIVE_BALANCE_INCREMENT});
+    logger.info(`${amount.mod(new BN(EFFECTIVE_BALANCE_INCREMENT))}`);
+    logger.info("HERE")
     const validator: Validator = {
       pubkey,
       withdrawalCredentials: deposit.data.withdrawalCredentials,

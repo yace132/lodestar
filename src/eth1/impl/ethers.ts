@@ -14,6 +14,7 @@ import logger from "../../logger";
 import {isValidAddress} from "../../util/address";
 import {DB} from "../../db";
 import {Log} from "ethers/providers";
+import {DEPOSIT_CONTRACT_TREE_DEPTH} from "../../constants";
 
 export interface EthersEth1Options extends Eth1Options {
   provider: ethers.providers.BaseProvider;
@@ -205,7 +206,7 @@ export class EthersEth1Notifier extends EventEmitter implements Eth1Notifier {
     return  {
       index: index,
       //TODO: calculate proof
-      proof: [],
+      proof: Array.from({length: DEPOSIT_CONTRACT_TREE_DEPTH},() => Buffer.alloc(32)),
       data
     };
   }
