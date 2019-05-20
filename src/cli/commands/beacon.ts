@@ -5,7 +5,7 @@
 import {CliCommand} from "./interface";
 import {CommanderStatic} from "commander";
 import {isPlainObject} from "../../util/objects";
-import logger from "../../logger";
+import logger, {LogLevel} from "../../logger";
 import BeaconNode, {BeaconNodeCtx} from "../../node";
 import {ethers} from "ethers";
 import {CliError} from "../error";
@@ -14,12 +14,14 @@ import * as RPCApis from "../../rpc/api";
 import deepmerge from "deepmerge";
 import {getTomlConfig, IConfigFile} from "../../util/toml";
 import defaults from "../../node/defaults";
+import * as C from "../../constants";
 
 interface IBeaconCommandOptions {
   db: string;
   depositContract: string;
   eth1RpcUrl: string;
   rpc: string;
+  loggingLevel: string;
   configFile: string;
 }
 
@@ -33,6 +35,7 @@ export class BeaconNodeCommand implements CliCommand {
       .option("-dc, --depositContract [address]", "Address of deposit contract")
       .option("-eth1, --eth1RpcUrl [url]", "Url to eth1 rpc node")
       .option("--rpc [api]", "Exposes the selected RPC api, must be comma separated")
+      .option("-l, --loggingLevel [DEBUG|INFO|WARN|ERRROR]", "Logging level")
       .option("-c, --configFile [config_file]", "Config file path")
       .action(async (options) => {
         // library is not awaiting this method so don't allow error propagation
@@ -46,6 +49,9 @@ export class BeaconNodeCommand implements CliCommand {
   }
 
   public async action(options: IBeaconCommandOptions): Promise<void> {
+    if (options.loggingLevel) {
+      logger.setLogLevel(LogLevel[options.loggingLevel]);
+    }
     let parsedConfig: IConfigFile;
     if (options.configFile) {
       parsedConfig = getTomlConfig(options.configFile);
