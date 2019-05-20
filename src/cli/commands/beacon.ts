@@ -14,6 +14,7 @@ import * as RPCApis from "../../rpc/api";
 import deepmerge from "deepmerge";
 import {getTomlConfig, IConfigFile} from "../../util/toml";
 import defaults from "../../node/defaults";
+import * as C from "../../constants";
 
 interface IBeaconCommandOptions {
   db: string;
@@ -80,7 +81,6 @@ export class BeaconNodeCommand implements CliCommand {
     if (options.configFile) {
       optionsMap = deepmerge(parsedConfig, optionsMap, {isMergeableObject: isPlainObject});
     }
-
     const node = new BeaconNode(optionsMap);
     await node.start();
   }

@@ -14,6 +14,7 @@ import logger from "../../logger";
 import {isValidAddress} from "../../util/address";
 import {DB} from "../../db";
 import {Log} from "ethers/providers";
+import {DEPOSIT_CONTRACT_TREE_DEPTH} from "../../constants";
 
 export interface EthersEth1Options extends Eth1Options {
   provider: ethers.providers.BaseProvider;
@@ -89,8 +90,17 @@ export class EthersEth1Notifier extends EventEmitter implements Eth1Notifier {
     this.emit('block', block);
   }
 
-  public async processDepositLog(dataHex: string, indexHex: string): Promise<void> {
-    const deposit = this.createDeposit(dataHex, indexHex);
+  public async processDepositLog(pubkey: string, withdrawalCredentials: string, amount: string, signature: string, merkleTreeIndex: string): Promise<void> {
+    const deposit: Deposit = {
+      proof: Array.from({length: DEPOSIT_CONTRACT_TREE_DEPTH},() => Buffer.alloc(32)),
+      index: deserialize(merkleTreeIndex, number64),
+      data: {
+        pubkey: Buffer.from(pubkey.slice(2), 'hex'),
+        withdrawalCredentials: Buffer.from(withdrawalCredentials.slice(2), 'hex'),
+        amount: deserialize(Buffer.from(amount.slice(2), 'hex'), number64),
+        signature: Buffer.from(signature.slice(2), 'hex'),
+      },
+    };
     logger.info(
       `Received validator deposit event index=${deposit.index}`
     );
@@ -201,11 +211,12 @@ export class EthersEth1Notifier extends EventEmitter implements Eth1Notifier {
   private createDeposit(dataHex: string, indexHex: string): Deposit {
     const dataBuf = Buffer.from(dataHex.substr(2), 'hex');
     const index = Buffer.from(indexHex.substr(2), 'hex').readUIntLE(0, 6);
+    console.log("deposit", dataBuf);
     const data: DepositData = deserialize(dataBuf, DepositData);
     return  {
       index: index,
       //TODO: calculate proof
-      proof: [],
+      proof: Array.from({length: DEPOSIT_CONTRACT_TREE_DEPTH},() => Buffer.alloc(32)),
       data
     };
   }

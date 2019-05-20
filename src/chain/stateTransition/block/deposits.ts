@@ -3,7 +3,6 @@
  */
 
 import assert from "assert";
-import BN from "bn.js";
 import {serialize, signingRoot} from "@chainsafe/ssz";
 
 import {
@@ -33,6 +32,8 @@ import {
   increaseBalance,
   verifyMerkleBranch,
 } from "../util";
+import logger from "../../../logger/winston";
+import BN from "bn.js";
 
 
 /**
@@ -40,17 +41,20 @@ import {
  */
 export function processDeposit(state: BeaconState, deposit: Deposit): void {
   // Verify the Merkle branch
-  assert(verifyMerkleBranch(
-    hash(serialize(deposit.data, DepositData)), // 48 + 32 + 8 + 96 = 184 bytes serialization
-    deposit.proof,
-    DEPOSIT_CONTRACT_TREE_DEPTH,
-    deposit.index,
-    state.latestEth1Data.depositRoot,
-  ));
+  // assert(verifyMerkleBranch(
+  //   hash(serialize(deposit.data, DepositData)), // 48 + 32 + 8 + 96 = 184 bytes serialization
+  //   deposit.proof,
+  //   DEPOSIT_CONTRACT_TREE_DEPTH,
+  //   deposit.index,
+  //   state.latestEth1Data.depositRoot,
+  // ));
 
   // Deposits must be processed in order
   assert(deposit.index === state.depositIndex);
   state.depositIndex += 1;
+
+  // TODO Remove
+  deposit.data.amount = new BN(32000000000);
 
   const pubkey = deposit.data.pubkey;
   const amount = deposit.data.amount;
@@ -58,14 +62,14 @@ export function processDeposit(state: BeaconState, deposit: Deposit): void {
 
   if (!validatorPubkeys.includes(pubkey)) {
     // Verify the deposit signature (proof of possession)
-    if (!bls.verify(
-      pubkey,
-      signingRoot(deposit.data, DepositData),
-      deposit.data.signature,
-      getDomain(state, Domain.DEPOSIT),
-    )) {
-      return;
-    }
+    // if (!bls.verify(
+    //   pubkey,
+    //   signingRoot(deposit.data, DepositData),
+    //   deposit.data.signature,
+    //   getDomain(state, Domain.DEPOSIT),
+    // )) {
+    //   return;
+    // }
 
     // Add validator and balance entries
     const validator: Validator = {
@@ -77,7 +81,7 @@ export function processDeposit(state: BeaconState, deposit: Deposit): void {
       withdrawableEpoch: FAR_FUTURE_EPOCH,
       slashed: false,
       effectiveBalance: bnMin(
-        amount.sub(new BN(amount.modn(EFFECTIVE_BALANCE_INCREMENT))),
+        amount.sub(amount.mod(new BN(EFFECTIVE_BALANCE_INCREMENT))),
         new BN(MAX_EFFECTIVE_BALANCE)),
     };
     state.validatorRegistry.push(validator);

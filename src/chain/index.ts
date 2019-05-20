@@ -5,6 +5,7 @@
 import assert from "assert";
 import {EventEmitter} from "events";
 import {hashTreeRoot} from "@chainsafe/ssz";
+import fs from "fs";
 
 import {BeaconBlock, BeaconState, Deposit, Eth1Data, number64} from "../types";
 import {GENESIS_SLOT, SECONDS_PER_SLOT} from "../constants";
@@ -44,10 +45,13 @@ export class BeaconChain extends EventEmitter {
    */
   public async start(): Promise<void> {
     try {
-      const state = await this.db.getState();
+      const f = await this.db.getState()
+
+      // this.initializeChain(this.genesisTime, state.)
     } catch (e) {
       // if state doesn't exist in the db, the chain maybe hasn't started
       // listen for eth1 Eth2Genesis event
+      logger.info("Listening for ETH2 genesis event...")
       this.eth1.once('eth2genesis', this.initializeChain.bind(this));
     }
   }
@@ -61,9 +65,10 @@ export class BeaconChain extends EventEmitter {
    * Initialize the beacon chain with a genesis beacon state / block
    */
   public async initializeChain(genesisTime: number64, genesisDeposits: Deposit[], genesisEth1Data: Eth1Data): Promise<void> {
-    logger.info('Initializing beacon chain.');
+    logger.info('Initializing beacon chain...');
     const genesisState = getGenesisBeaconState(genesisDeposits, genesisTime, genesisEth1Data);
     const genesisBlock = getEmptyBlock();
+
     genesisBlock.stateRoot = hashTreeRoot(genesisState, BeaconState);
     this.genesisTime = genesisTime;
     await this.db.setBlock(genesisBlock);
@@ -76,6 +81,7 @@ export class BeaconChain extends EventEmitter {
     this.forkChoice.addBlock(genesisBlock.slot, genesisRoot, Buffer.alloc(32));
     this.forkChoice.setJustified(genesisRoot);
     this.forkChoice.setFinalized(genesisRoot);
+    logger.info("Chain initialized.")
   }
 
   /**
