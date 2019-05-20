@@ -5,13 +5,14 @@
 import {CliCommand} from "./interface";
 import {PrivateEth1Network} from "../../eth1/dev";
 import {CommanderStatic} from "commander";
-import logger from "../../logger";
+import logger, {LogLevel} from "../../logger";
 
 interface IEth1CommandOptions {
   host: string;
   port: number;
   network: number;
   mnemonic: string;
+  loggingLevel: string;
   database: string;
 }
 
@@ -26,6 +27,7 @@ export class Eth1PrivateNetworkCommand implements CliCommand {
       .option("-m, --mnemonic [mnemonic]", 'mnemonic string to be used for generating account')
       .option("-n, --network [networkId]", "Id of eth1 chain", 200)
       .option("-d, --database [database]", 'Path to database, if specified chain will be initialized from stored point')
+      .option("-l, --loggingLevel [DEBUG|INFO|WARN|ERROR]", "Logging level")
       .action(async (options) => {
         try {
           await this.action(options);
@@ -37,6 +39,9 @@ export class Eth1PrivateNetworkCommand implements CliCommand {
   }
 
   public async action(options: IEth1CommandOptions): Promise<PrivateEth1Network> {
+    if (options.loggingLevel) {
+      logger.setLogLevel(LogLevel[options.loggingLevel]);
+    }
     const privateNetwork = new PrivateEth1Network({
       port: options.port,
       host: options.host,

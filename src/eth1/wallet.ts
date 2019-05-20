@@ -29,7 +29,7 @@ export class Eth1Wallet {
    * @param address address of deposit contract
    * @param amount amount to wei to deposit on contract
    */
-  public async createValidatorDeposit(address: string, value: BigNumber): Promise<string> {
+  public async createValidatorDeposit(address: string, value: BigNumber): Promise<void> {
     // Minor hack, no real performance loss
     const amount = new BN(value.toString());
 
@@ -44,8 +44,8 @@ export class Eth1Wallet {
       amount,
       signature: Buffer.alloc(96)
     };
-    console.log({depositData});
-    console.log(signingRoot(depositData.pubkey, bytes48));
+
+    console.log(signingRoot(depositData, DepositData));
 
   //   const signature = signingRoot(depositData, DepositData);
   //   depositData.signature = hash(signature);

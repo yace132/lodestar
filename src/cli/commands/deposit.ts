@@ -34,7 +34,7 @@ export class DepositCommand implements CliCommand {
       .option("-c, --contract [contract]", 'Address of deposit contract', defaults.depositContract.address)
       .option("-a, --accounts [accounts]", "Number of accounts to generate at startup", 10)
       .action( async (options) => {
-        //library is not awaiting this method so don't allow error propagation 
+        //library is not awaiting this method so don't allow error propagation
         // (unhandled promise rejections)
         try {
           await this.action(options);
@@ -70,7 +70,7 @@ export class DepositCommand implements CliCommand {
             .createValidatorDeposit(options.contract, ethers.utils.parseEther(options.value));
           logger.info(`Successfully deposited ${options.value} ETH from ${wallet.address} to deposit contract. Tx hash: ${hash}`);
         } catch (e) {
-          throw new CliError(`Failed to make deposit for account ${wallet.address}. Reason: ${e.message}`);
+          throw new CliError(`Failed to make deposit for account ${wallet.address}. Reason: ${e.message}. Stack: ${e.stack}`);
         }
       })
     );
