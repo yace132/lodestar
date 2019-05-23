@@ -34,6 +34,8 @@ export class PrivateEth1Network {
       ...this.opts,
       // eslint-disable-next-line  @typescript-eslint/camelcase
       default_balance_ether: this.opts.defaultBalance,
+      debug: true,
+      logger: console,
       // eslint-disable-next-line  @typescript-eslint/camelcase
       db_path: this.opts.dbPath
     });

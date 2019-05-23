@@ -5,11 +5,11 @@
 import defaults from "./defaults";
 import {ContractTransaction, ethers, Wallet} from "ethers";
 import {Provider} from "ethers/providers";
-import {bytes48, DepositData, number64} from "../types";
+import {DepositData, number64} from "../types";
 import BN from "bn.js";
 import bls from "@chainsafe/bls-js";
-import {hash} from "../util/crypto"
-import {BLS_WITHDRAWAL_PREFIX_BYTE} from "../constants";
+import {hash} from "../util/crypto";
+import {BLS_WITHDRAWAL_PREFIX_BYTE, Domain} from "../constants";
 import {signingRoot} from "@chainsafe/ssz";
 import {BigNumber} from "ethers/utils";
 
@@ -29,39 +29,47 @@ export class Eth1Wallet {
    * @param address address of deposit contract
    * @param amount amount to wei to deposit on contract
    */
-  public async createValidatorDeposit(address: string, value: BigNumber): Promise<void> {
+  public async createValidatorDeposit(address: string, value: BigNumber): Promise<string> {
+    // TODO Regardless of the return value, the calling function will assume success, need to error handle.
     // Minor hack, no real performance loss
-    const amount = new BN(value.toString());
+    const amount = new BN(value.toString()).div(new BN(1000000000));
 
     let contract = new ethers.Contract(address, defaults.depositContract.abi, this.wallet);
-    const key = bls.generateKeyPair();
-    const withdrawalCredentials = Buffer.concat([BLS_WITHDRAWAL_PREFIX_BYTE, hash(key.publicKey.toBytesCompressed().slice(1))]);
+    const privateKey = hash(Buffer.from(address, 'hex'));
+    const pubkey = bls.generatePublicKey(privateKey);
+    const withdrawalCredentials = Buffer.concat([
+      BLS_WITHDRAWAL_PREFIX_BYTE,
+      hash(pubkey).slice(1),
+    ]);
 
     // Create deposit data
     const depositData: DepositData = {
-      pubkey: Buffer.from(key.publicKey.toBytesCompressed()),
+      pubkey,
       withdrawalCredentials,
       amount,
       signature: Buffer.alloc(96)
     };
 
-    console.log(signingRoot(depositData, DepositData));
-
-  //   const signature = signingRoot(depositData, DepositData);
-  //   depositData.signature = hash(signature);
-  //
-  //   // Send TX
-  //   try {
-  //     const tx: ContractTransaction = await contract.deposit(
-  //       depositData.pubkey,
-  //       depositData.withdrawalCredentials,
-  //       depositData.signature,
-  //       {value: depositData.amount});
-  //     await tx.wait();
-  //     return tx.hash;
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
+    const signature = bls.sign(
+      privateKey,
+      signingRoot(depositData, DepositData),
+      Buffer.from([0, 0, 0, Domain.DEPOSIT]));
+    console.log('xx');
+    console.log(pubkey.length === 48);
+    console.log(withdrawalCredentials.length === 32);
+    console.log(signature.length === 96);
+    console.log(amount.toString());
+    // Send TX
+    try {
+      const tx: ContractTransaction = await contract.deposit(
+        pubkey,
+        withdrawalCredentials,
+        signature,
+        {value});
+      await tx.wait();
+      return tx.hash;
+    } catch(e) {
+      console.error(e.data.stack)
+    }
   }
-
 }
