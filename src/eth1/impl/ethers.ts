@@ -93,7 +93,7 @@ export class EthersEth1Notifier extends EventEmitter implements Eth1Notifier {
   public async processDepositLog(pubkey: string, withdrawalCredentials: string, amount: string, signature: string, merkleTreeIndex: string): Promise<void> {
     const deposit: Deposit = {
       proof: Array.from({length: DEPOSIT_CONTRACT_TREE_DEPTH},() => Buffer.alloc(32)),
-      index: deserialize(merkleTreeIndex, number64),
+      index: (await this.contract.from_little_endian_64(merkleTreeIndex)).toNumber(),
       data: {
         pubkey: Buffer.from(pubkey.slice(2), 'hex'),
         withdrawalCredentials: Buffer.from(withdrawalCredentials.slice(2), 'hex'),
@@ -105,7 +105,7 @@ export class EthersEth1Notifier extends EventEmitter implements Eth1Notifier {
       `Received validator deposit event index=${deposit.index}`
     );
     if (deposit.index !== this.depositCount) {
-      logger.warn(`Validator deposit with index=${deposit.index} received out of order.`);
+      logger.warn(`Validator deposit with index=${deposit.index} received out of order. (currentCount: ${this.depositCount})`);
       // deposit processed out of order
       return;
     }
