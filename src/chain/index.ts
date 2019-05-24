@@ -81,7 +81,7 @@ export class BeaconChain extends EventEmitter {
     this.forkChoice.addBlock(genesisBlock.slot, genesisRoot, Buffer.alloc(32));
     this.forkChoice.setJustified(genesisRoot);
     this.forkChoice.setFinalized(genesisRoot);
-    logger.info("Chain initialized.")
+    logger.info("Chain initialized.");
   }
 
   /**
