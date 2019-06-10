@@ -27,13 +27,7 @@ export interface IPeer {
   peerInfo: PeerInfo;
   latestHello: Hello | null;
   latestStatus: Status | null;
-  hello(request: Hello): Promise<Hello>;
-  goodbye(request: Goodbye): Promise<void>;
-  getStatus(request: Status): Promise<Status>;
-  getBeaconBlockRoots(request: BeaconBlockRootsRequest): Promise<BeaconBlockRootsResponse>;
-  getBeaconBlockHeaders(request: BeaconBlockHeadersRequest): Promise<BeaconBlockHeadersResponse>;
-  getBeaconBlockBodies(request: BeaconBlockBodiesRequest): Promise<BeaconBlockBodiesResponse>;
-  getBeaconStates(request: BeaconStatesRequest): Promise<BeaconStatesResponse>;
+  sendRequest<T extends ResponseBody>(method: Method, request: RequestBody): Promise<T>;
 }
 
 export interface INetwork extends EventEmitter {
