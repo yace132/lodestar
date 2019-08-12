@@ -34,7 +34,7 @@ export function getAttestationDataSlot(config: IBeaconConfig, state: BeaconState
   const epoch = data.target.epoch;
   const committeeCount = getCommitteeCount(config, state, epoch);
   const offset = (data.crosslink.shard + config.params.SHARD_COUNT - getStartShard(config, state, epoch)) % config.params.SHARD_COUNT;
-  return intDiv(computeStartSlotOfEpoch(config, epoch) + offset, intDiv(committeeCount, config.params.SLOTS_PER_EPOCH));
+  return computeStartSlotOfEpoch(config, epoch) + intDiv(offset, intDiv(committeeCount, config.params.SLOTS_PER_EPOCH));
 }
 
 /**
